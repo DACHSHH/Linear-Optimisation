@@ -2,7 +2,7 @@ import numpy as np
 
 
 # Define sets
-I = range(4)  # Set of Process Steps, change this number to change the number of process steps
+I = range(10)  # Set of Process Steps, change this number to change the number of process steps
 J = range(3)   #  Set of Modules, change this number to change the number of modules
 W = range(10)   # Set of Wafers per Module, change this number to change the number of wafers
 
@@ -12,7 +12,7 @@ I_recipe = recipe_steps # renamed name for consistency
 I_load = set(recipe_step -1 for recipe_step in recipe_steps)
 I_unload = set(recipe_step +1 for recipe_step in recipe_steps)
 
-I_automation = {0,2}
+I_automation = {0,2,4}
 # T(i,j) is simply the duration of a process step. T is not wafer dependent. This constraint is imposed to simplify the model and means that processing in the automation module is not affected by the order in which wafers are loaded and unloaded from different stations.
 # Randomly generate durations between 10 and 100 seconds depending on the process step i and module j
 T = {(i, j): np.random.randint(10, 20) for i in I for j in J}

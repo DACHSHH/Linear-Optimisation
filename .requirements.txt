@@ -1,0 +1,3 @@
+numpy>=2.0.0,<3.0
+matplotlib>=3.9.0,<4.0
+PySCIPOpt>=5.0.1,<6.0
