@@ -21,8 +21,8 @@ else:
 
 # Plot the solution
 # Initialize the figure and axes
-fig, ax = plt.subplots()
-
+# fig, axs = plt.subplots(len(J),1)
+fig, axs = plt.subplots(2,1)
 ############################# Plot the solution ################################
 
 # Plot for each wafer
@@ -30,18 +30,19 @@ colors = plt.cm.tab20.colors
 handles = []
 labels = []
 for j in J:
-    # if j == 0: # process module 0, comment out if you want to plot other process modules
+    if j == 0: # process module 0, comment out if you want to plot other process modules
         for w in W:
             t_values = [model.getVal(t[(i, j, w)]) for i in I]
-            ax.step(t_values, range(len(t_values)), color=colors[w % 20], label=f"Wafer {j,w}")
+            axs[j].step(t_values, range(len(t_values)), color=colors[w % 20], label=f"Wafer {j,w}")
             handles.append(plt.Rectangle((0,0),1,1,color=colors[w % 20]))
             labels.append(f"Wafer {j,w}")
+            # Set labels and show the plot
+        axs[j].set_xlabel("Time")
+        axs[j].set_ylabel("Process Step")
+        # ax.invert_yaxis()
+        axs[j].set_aspect('auto')
+        axs[j].legend(handles=handles, labels=labels, bbox_to_anchor=(1.05, 1), loc='upper left')
 
-# Set labels and show the plot
-ax.set_xlabel("Time")
-ax.set_ylabel("Process Step")
-# ax.invert_yaxis()
-ax.set_aspect('auto')
-ax.legend(handles=handles, labels=labels, bbox_to_anchor=(1.05, 1), loc='upper left')
+
 plt.tight_layout()
 plt.show()  

@@ -10,3 +10,27 @@ for k in I_automation:
                                print(i,j,w,k,l,x)
                                y= y+ 1
 print('y ist = ',y)
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Daten generieren
+x = np.linspace(0, 10, 100)
+y1 = np.sin(x)
+y2 = np.cos(x)
+
+# Erstellen Sie eine Figur und zwei Subplots
+fig, (ax1, ax2) = plt.subplots(2, 1)
+
+# Zeichnen Sie den ersten Plot
+ax1.plot(x, y1, color='blue')
+ax1.set_title('Sinus-Plot')
+
+# Zeichnen Sie den zweiten Plot
+ax2.plot(x, y2, color='red')
+ax2.set_title('Cosinus-Plot')
+
+# Anzeigen der Figur
+plt.tight_layout()
+plt.show()
