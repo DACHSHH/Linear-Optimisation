@@ -22,43 +22,77 @@ def read_from_csv(filename, I, J, W):
     return t
         
 
-def plot_results(t, I, J, W):
-    # Plot the solution
-    # Initialize the figure and axes
-    fig, axs = plt.subplots(len(J),1)
-    # fig, axs = plt.subplots(2,1)
-    ############################# Plot the solution ################################
 
-    # Plot for each wafer
+import matplotlib.pyplot as plt
+
+def plot_results(t, I, J, W, T, I_automation, I_recipe):
+    # Initialize the figure for per-module plots
+    fig1, axs = plt.subplots(len(J), 1, figsize=(10, len(J) * 3))  # One subplot per module j
     
-    for j in J:
-        # if j == 0: # process module 0, comment out if you want to plot other process modules
-        colors = plt.cm.tab20.colors
-        handles = []
-        labels = []
+    # Ensure axs is iterable (important when len(J) == 1)
+    if len(J) == 1:
+        axs = [axs]
+    
+    # Colors for each wafer
+    colors = plt.cm.tab20.colors
+
+    # Plotting for each module
+    for index, j in enumerate(J):
+        # Iterate over each wafer
         for w in W:
-            t_values = [t[(i, j, w)] for i in I]
-            
-            steps =  [i for i in range(len(t_values))]
-            steps.insert(0,0)
-            t_values.append(t_values[-1])
-            axs[j].step(t_values, steps, color=colors[w % C[j]], label=f"Wafer {j,w}")
-            handles.append(plt.Rectangle((0,0),1,1,color=colors[w % C[j]]))
-            labels.append(f"Wafer {j,w}")
-            # Set labels and show the plot
-        axs[j].set_xlabel("Time")
-        axs[j].set_ylabel("Process Step")
-        # ax.invert_yaxis()
-        axs[j].set_aspect('auto')
-        axs[j].legend(handles=handles, labels=labels, bbox_to_anchor=(1.05, 1), loc='upper left') # Ajust sliders
-        axs[j].set_xlim([0, 3000]) # improve!
-  
-            
+            # Plot each step for the current wafer
+            for i in I:
+                start_time = t[(i, j, w)]
+                duration = T[(i, j)]
+                end_time = start_time + duration
+                t_values = [start_time, end_time]
+                steps = [i, i]
+                line, = axs[index].step(t_values, steps, where='post', color=colors[w % len(colors)], linewidth=2)
 
-    plt.tight_layout()
-    plt.show() 
+            # Add legend entry for each wafer only once
+            line.set_label(f"Wafer {j, w}")
 
+        # Set labels and customize subplot
+        axs[index].set_xlabel("Time")
+        axs[index].set_ylabel("Process Step")
+        axs[index].set_title(f"Module {j}")
+        axs[index].legend(loc='upper left', bbox_to_anchor=(1,1))  # Legend on the right side
+        axs[index].set_xlim(left=0)
+
+    plt.tight_layout()  # Adjust layout to prevent overlap
+    plt.subplots_adjust(right=0.85)  # Make room for the legend
+    plt.show()  # Display the first plot
+
+    # Initialize a separate figure for all wafers
+    fig2, ax2 = plt.subplots(1, 1, figsize=(10, 3))
+    # Additional plot for all wafers with different colors, no legend
+    for w in W:
+        for j in J:
+            for i in I:
+                start_time = t[(i, j, w)]
+                duration = T[(i, j)]
+                end_time = start_time + duration
+                t_values = [start_time, end_time]
+                # Define steps based on i in automation or recipe
+                if i in I_automation:
+                    steps = ['Automation Module', 'Automation Module']
+                elif i in I_recipe:
+                    # Differentiating process modules based on j
+                    steps = [f'Process Module {j+1}', f'Process Module {j+1}']
+                ax2.step(t_values, steps, where='post', color=colors[w % len(colors)], linewidth=2)
+
+    # Customize the all-wafer plot
+    ax2.set_xlabel("Time")
+    ax2.set_ylabel("Module")
+    ax2.set_title("All Wafers Overview")
+    ax2.set_xlim(left=0)
+
+    plt.tight_layout()  # Adjust layout to prevent overlap
+    plt.show()  # Display the second plot
+
+# Example call of the function with defined parameters
+# plot_results(t={...}, I=[...], J=[...], W=[...], T={...}, I_automation=[...], I_recipe=[...])
 if __name__== "__main__":
     t = read_from_csv('results.csv', I, J, W)
-    plot_results(t, I, J, W)
+    plot_results(t, I, J, W, T, I_automation, I_recipe)
     

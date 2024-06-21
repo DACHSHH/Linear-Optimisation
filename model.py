@@ -67,17 +67,11 @@ y = {(k, l, x, i, j, w): model.addVar(vtype="B", name=f"y_{k}_{l}_{x}_{i}_{j}_{w
     }
 
 # Add constraints to ensure the time gap using Big M method
-for k in I_automation:
-    for l in J:
-        for x in W:
-            for i in I_automation:
-                for j in J:
-                    for w in W:
-                        if (k, l, x) < (i, j, w) and not (l == j and x == w) and not (k == i and l == j): # avoids comparing the same process steps twice and avoids comparing two steps of the same wafer (j,w) because (2) already holds and avoids comparing the same process module in its same process step because (3) holds.
-                                model.addCons(t[k, l, x] - t[i+1, j, w] + M * y[k, l, x, i, j, w] >= 0)
-                                model.addCons(t[i, j, w] - t[k+1, l, x] + M * (1 - y[k, l, x, i, j, w]) >= 0)
+for k, l, x, i, j, w in y:
+    model.addCons(t[k, l, x] - t[i, j, w] + M * y[k, l, x, i, j, w] >= T[i, j])
+    model.addCons(t[i, j, w] - t[k, l, x] + M * (1 - y[k, l, x, i, j, w]) >= T[k, l])
 
 
-
-
+#lazy constraints
+# benderts decomposition
 # Define th large value M
