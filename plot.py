@@ -22,9 +22,6 @@ def read_from_csv(filename, I, J, W):
     return t
         
 
-
-import matplotlib.pyplot as plt
-
 def plot_results(t, I, J, W, T, I_automation, I_recipe):
     # Initialize the figure for per-module plots
     fig1, axs = plt.subplots(len(J), 1, figsize=(10, len(J) * 3))  # One subplot per module j
@@ -79,7 +76,7 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
                 elif i in I_recipe:
                     # Differentiating process modules based on j
                     steps = [f'Process Module {j+1}', f'Process Module {j+1}']
-                ax2.step(t_values, steps, where='post', color=colors[w % len(colors)], linewidth=2)
+                ax2.step(t_values, steps, where='post', color=colors[hash((i, j, w)) % len(colors)], linewidth=2)
 
     # Customize the all-wafer plot
     ax2.set_xlabel("Time")
@@ -90,8 +87,6 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
     plt.tight_layout()  # Adjust layout to prevent overlap
     plt.show()  # Display the second plot
 
-# Example call of the function with defined parameters
-# plot_results(t={...}, I=[...], J=[...], W=[...], T={...}, I_automation=[...], I_recipe=[...])
 if __name__== "__main__":
     t = read_from_csv('results.csv', I, J, W)
     plot_results(t, I, J, W, T, I_automation, I_recipe)
