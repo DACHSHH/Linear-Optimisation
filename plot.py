@@ -1,6 +1,8 @@
 from functions import *
 from data import *
 import matplotlib.pyplot as plt
+import mplcursors
+from matplotlib.ticker import MaxNLocator
 
 def read_from_csv(filename, I, J, W):
     # Initialize an empty dictionary to store the triple indexed values
@@ -21,9 +23,6 @@ def read_from_csv(filename, I, J, W):
                 line += 1 
     return t
         
-
-
-import matplotlib.pyplot as plt
 
 def plot_results(t, I, J, W, T, I_automation, I_recipe):
     # Initialize the figure for per-module plots
@@ -47,7 +46,7 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
                 end_time = start_time + duration
                 t_values = [start_time, end_time]
                 steps = [i, i]
-                line, = axs[index].step(t_values, steps, where='post', color=colors[w % len(colors)], linewidth=2)
+                line, = axs[index].step(t_values, steps, where='post', color=colors[w % C[j]], linewidth=2)
 
             # Add legend entry for each wafer only once
             line.set_label(f"Wafer {j, w}")
@@ -58,6 +57,8 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
         axs[index].set_title(f"Module {j}")
         axs[index].legend(loc='upper left', bbox_to_anchor=(1,1))  # Legend on the right side
         axs[index].set_xlim(left=0)
+        # Stelle sicher, dass die Y-Achse nur Ganzzahlen zeigt
+        axs[index].yaxis.set_major_locator(MaxNLocator(integer=True))
 
     plt.tight_layout()  # Adjust layout to prevent overlap
     plt.subplots_adjust(right=0.85)  # Make room for the legend
@@ -79,19 +80,19 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
                 elif i in I_recipe:
                     # Differentiating process modules based on j
                     steps = [f'Process Module {j+1}', f'Process Module {j+1}']
-                ax2.step(t_values, steps, where='post', color=colors[w % len(colors)], linewidth=2)
-
+                ax2.step(t_values, steps, where='post', color=colors[hash((i, j, w)) % len(colors)], linewidth=2,  label=f"{i} {j} {w}")
+    
     # Customize the all-wafer plot
     ax2.set_xlabel("Time")
     ax2.set_ylabel("Module")
     ax2.set_title("All Wafers Overview")
     ax2.set_xlim(left=0)
-
+      # Cursor hinzufügen
+    cursor = mplcursors.cursor(hover=True)
+    cursor.connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
     plt.tight_layout()  # Adjust layout to prevent overlap
     plt.show()  # Display the second plot
 
-# Example call of the function with defined parameters
-# plot_results(t={...}, I=[...], J=[...], W=[...], T={...}, I_automation=[...], I_recipe=[...])
 if __name__== "__main__":
     t = read_from_csv('results.csv', I, J, W)
     plot_results(t, I, J, W, T, I_automation, I_recipe)
