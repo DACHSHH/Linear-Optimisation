@@ -4,7 +4,7 @@ import numpy as np
 # Define sets
 I = range(4)  # Set of Process Steps, change this number to change the number of process steps
 J = range(3)   #  Set of Modules, change this number to change the number of modules
-W = range(5)   # Set of Wafers per Module, change this number to change the number of wafers
+W = range(10)   # Set of Wafers per Module, change this number to change the number of wafers
 
 # Define Sub Sets 
 recipe_steps = {1} # Set of process steps where all wafers belonging to a specific run of a module are processed together during a recipe step.

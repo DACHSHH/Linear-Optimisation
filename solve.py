@@ -1,7 +1,6 @@
 from data import *
 from model import *
-from functions import *
-
+import csv
 
 ############################# solve the model ################################
 # Objective: minimize t_max
