@@ -80,8 +80,8 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
                 elif i in I_recipe:
                     # Differentiating process modules based on j
                     steps = [f'Process Module {j+1}', f'Process Module {j+1}']
-                ax2.step(t_values, steps, where='post', color=colors[hash((i, j, w)) % len(colors)], linewidth=2,  label=f"{i} {j} {w}")
-    
+                ax2.step(t_values, steps, where='post', color=colors[w % len(colors)], linewidth=2)
+
     # Customize the all-wafer plot
     ax2.set_xlabel("Time")
     ax2.set_ylabel("Module")
