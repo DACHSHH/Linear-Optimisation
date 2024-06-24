@@ -17,12 +17,10 @@ I_automation = {0,2}
 # Randomly generate durations between 10 and 100 seconds depending on the process step i and module j
 
 if __name__ == '__main__':
-    T = {(i, j): np.random.randint(10, 100) for i in I for j in J}
     # Set the duration of process step 4 for module 0 to 100 seconds, just for test purposes.
-    T[1, 0] = 1000
-    T[1, 1] = 1500
-    T[1, 2] = 800
-
+    T = {(i, j): np.random.randint(10, 100) for i in I for j in J}
+    # Überschreibt die Werte in T für alle Paare (1, j) mit neuen zufälligen Werten zwischen 1000 und 2000
+    T.update({(1, j): np.random.randint(1000, 2000) for j in J if (1, j) in T})
     with open('T(i,j).csv', 'w', newline='') as file:
         writer = csv.writer(file)
         for i in I:

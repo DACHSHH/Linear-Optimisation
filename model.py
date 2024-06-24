@@ -52,15 +52,21 @@ for i in I_recipe:
                 for w in W:
                     for x in W:
                         # if the wafer fits into the same run of a process module, then the start time of wafer x in module j is equal to the start time of wafer w in module j.
-                        if int(w/C[j]) == int(x/C[j]):
+                        if int(x/C[j]) == int(w/C[j]):
                             model.addCons(t[i, j, x] == t[i, l, w])
 
+# (6) Make sure the process moduel can't start before it has been emptied completely.
+for i in I_recipe:
+    for j in J:
+        for w in W:
+            for x in W:
+                if int(x/C[j]) > int(w/C[j]):
+                    model.addCons(t[i, j, x] >= t[i+1, j, w]+ T[i+1, j])
 
 
 
-
-M = 1000  # this should be larger than any maximum difference expected between start times
-
+# Big M definition, this should be larger than any maximum difference expected between start times. Worst case are all process steps are running not in parallel. 
+M = sum(T[i, j]*len(W) for i in set(I)- set(I_recipe) for j in J) + sum(T[i, j] for i in I_recipe for j in J) 
 
 y = {(k, l, x, i, j, w): model.addVar(vtype="B", name=f"y_{k}_{l}_{x}_{i}_{j}_{w}")
      for k in I_automation for l in J for x in W
@@ -75,4 +81,3 @@ for k, l, x, i, j, w in y:
 
 #lazy constraints
 # benderts decomposition
-# Define th large value M
