@@ -57,20 +57,6 @@ for i in I_recipe:
 
 
 
-M = 10000  # this should be larger than any maximum difference expected between start times
-
-
-y = {(k, l, x, i, j, w): model.addVar(vtype="B", name=f"y_{k}_{l}_{x}_{i}_{j}_{w}")
-     for k in I_automation for l in J for x in W
-     for i in I_automation for j in J for w in W
-     if (k, l, x) < (i, j, w) and not (l == j and x == w) and not (k == i and l == j) # avoids comparing the same process steps twice and avoids comparing two steps of the same wafer (j,w) because (2) already holds and avoids comparing the same process module in its same process step because (3) holds.
-    }
-
-# Add constraints to ensure the time gap using Big M method
-for k, l, x, i, j, w in y:
-    model.addCons(t[k, l, x] - t[i, j, w] + M * y[k, l, x, i, j, w] >= T[i, j])
-    model.addCons(t[i, j, w] - t[k, l, x] + M * (1 - y[k, l, x, i, j, w]) >= T[k, l])
-
 
 #lazy constraints
 # benderts decomposition
