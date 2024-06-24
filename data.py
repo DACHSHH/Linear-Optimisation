@@ -1,8 +1,8 @@
 import numpy as np
-
+import csv
 
 # Define sets
-I = range(4)  # Set of Process Steps, change this number to change the number of process steps
+I = range(3)  # Set of Process Steps, change this number to change the number of process steps
 J = range(3)   #  Set of Modules, change this number to change the number of modules
 W = range(10)   # Set of Wafers per Module, change this number to change the number of wafers
 
@@ -15,15 +15,65 @@ I_unload = set(recipe_step +1 for recipe_step in recipe_steps)
 I_automation = {0,2}
 # T(i,j) is simply the duration of a process step. T is not wafer dependent. This constraint is imposed to simplify the model and means that processing in the automation module is not affected by the order in which wafers are loaded and unloaded from different stations.
 # Randomly generate durations between 10 and 100 seconds depending on the process step i and module j
-T = {(i, j): np.random.randint(10, 100) for i in I for j in J}
-# Set the duration of process step 4 for module 0 to 100 seconds, just for test purposes.
-T[1, 0] = 1000
-T[1, 2] = 1500
-T[1, 3] = 800
-# Ramdomly generateted capacipties for all process modules between 5 and 10
-C = {j: np.random.randint(5, 10) for j in J}
-# set the first capacity to 5, just for test purposes.
-C[0] = 5
+
+if __name__ == '__main__':
+    T = {(i, j): np.random.randint(10, 100) for i in I for j in J}
+    # Set the duration of process step 4 for module 0 to 100 seconds, just for test purposes.
+    T[1, 0] = 1000
+    T[1, 1] = 1500
+    T[1, 2] = 800
+
+    with open('T(i,j).csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        for i in I:
+            for j in J:
+                    print(f"T[{i}][{j}] = {T[i, j]}")
+                    # Write results
+                    writer.writerow({T[i, j]})
+
+    # Ramdomly generateted capacipties for all process modules between 5 and 10
+    C = {j: np.random.randint(5, 10) for j in J}
+    # set the first capacity to 5, just for test purposes.
+    C[0] = 5
+    with open('C(j).csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        for i in I:
+            for j in J:
+                    print(f"C[{j}] = {C[j]}")
+                    # Write results
+                    writer.writerow({C[j]})
+
+def read_T_from_csv(filename, I, J):
+    # Initialize an empty dictionary to store the triple indexed values
+    T_list = []
+    # Open the file in read mode
+    with open(filename, 'r') as file:
+        # Read each line
+        for line in file:
+            txt = line.strip().replace('\n','')
+            T_list.append(float(txt))
+    line = 0
+        # Convert the line to an integer and append it to the list
+    T = {}
+    for i in I:
+        for j in J:
+                T[(i, j)] = T_list[line]
+                line += 1 
+    return T
+def read_C_from_csv(filename):
+    # Initialize an empty dictionary to store the triple indexed values
+    C = []
+    # Open the file in read mode
+    with open(filename, 'r') as file:
+        # Read each line
+        for line in file:
+            txt = line.strip().replace('\n','')
+            C.append(float(txt))
+    return C
+C = read_C_from_csv('C(j).csv')
+T = read_T_from_csv('T(i,j).csv', I, J)
 # Print generated T and C
+
 print("Durations for each step:", T)
 print("Capacities for each module:", C)
+

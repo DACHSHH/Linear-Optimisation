@@ -1,4 +1,3 @@
-from functions import *
 from data import *
 import matplotlib.pyplot as plt
 import mplcursors
@@ -13,7 +12,7 @@ def read_from_csv(filename, I, J, W):
         for line in file:
             txt = line.strip().replace('\n','')
             t_list.append(float(txt))
-        line = 0
+    line = 0
         # Convert the line to an integer and append it to the list
     t = {}
     for i in I:
@@ -21,7 +20,9 @@ def read_from_csv(filename, I, J, W):
             for w in W:
                 t[(i, j, w)] = t_list[line]
                 line += 1 
-    return t
+    t_max = t_list[line]
+    return t, t_max
+    
         
 
 def plot_results(t, I, J, W, T, I_automation, I_recipe):
@@ -36,7 +37,7 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
     colors = plt.cm.tab20.colors
 
     # Plotting for each module
-    for index, j in enumerate(J):
+    for j in J:
         # Iterate over each wafer
         for w in W:
             # Plot each step for the current wafer
@@ -46,20 +47,19 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
                 end_time = start_time + duration
                 t_values = [start_time, end_time]
                 steps = [i, i]
-                line, = axs[index].step(t_values, steps, where='post', color=colors[w % C[j]], linewidth=2)
-
+                line, = axs[j].step(t_values, steps, where='post', color=colors[w % int(C[j])])
+                
             # Add legend entry for each wafer only once
             line.set_label(f"Wafer {j, w}")
-
         # Set labels and customize subplot
-        axs[index].set_xlabel("Time")
-        axs[index].set_ylabel("Process Step")
-        axs[index].set_title(f"Module {j}")
-        axs[index].legend(loc='upper left', bbox_to_anchor=(1,1))  # Legend on the right side
-        axs[index].set_xlim(left=0)
+        axs[j].set_xlabel("Time")
+        axs[j].set_ylabel("Process Step")
+        axs[j].set_title(f"Module {j}")
+        axs[j].legend(loc='upper left', bbox_to_anchor=(1,1))  # Legend on the right side
+        axs[j].set_xlim(left=0,right=t_max)
         # Stelle sicher, dass die Y-Achse nur Ganzzahlen zeigt
-        axs[index].yaxis.set_major_locator(MaxNLocator(integer=True))
-
+        axs[j].yaxis.set_major_locator(MaxNLocator(integer=True))
+        
     plt.tight_layout()  # Adjust layout to prevent overlap
     plt.subplots_adjust(right=0.85)  # Make room for the legend
     plt.show()  # Display the first plot
@@ -70,18 +70,14 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
     for w in W:
         for j in J:
             for i in I:
-                start_time = t[(i, j, w)]
-                duration = T[(i, j)]
-                end_time = start_time + duration
-                t_values = [start_time, end_time]
+                t_values = [t[(i, j, w)], t[(i, j, w)] + T[(i, j)]]
                 # Define steps based on i in automation or recipe
                 if i in I_automation:
-                    steps = ['Automation Module', 'Automation Module']
+                    steps = [f'Automation Module {j}', f'Automation Module {j}']
                 elif i in I_recipe:
                     # Differentiating process modules based on j
                     steps = [f'Process Module {j+1}', f'Process Module {j+1}']
                 ax2.step(t_values, steps, where='post', color=colors[hash((i, j, w)) % len(colors)], linewidth=2,  label=f"{i} {j} {w}")
-    
     # Customize the all-wafer plot
     ax2.set_xlabel("Time")
     ax2.set_ylabel("Module")
@@ -94,6 +90,6 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
     plt.show()  # Display the second plot
 
 if __name__== "__main__":
-    t = read_from_csv('results.csv', I, J, W)
+    t, t_max = read_from_csv('t(i,j,w)_results.csv', I, J, W)
     plot_results(t, I, J, W, T, I_automation, I_recipe)
     
