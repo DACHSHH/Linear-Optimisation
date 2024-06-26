@@ -13,11 +13,12 @@ I_load = set(recipe_step -1 for recipe_step in recipe_steps)
 I_unload = set(recipe_step +1 for recipe_step in recipe_steps)
 
 I_automation = {0,2}
-# T(i,j) is simply the duration of a process step. T is not wafer dependent. This constraint is imposed to simplify the model and means that processing in the automation module is not affected by the order in which wafers are loaded and unloaded from different stations.
-# Randomly generate durations between 10 and 100 seconds depending on the process step i and module j
+
 
 if __name__ == '__main__':
-    # Set the duration of process step 4 for module 0 to 100 seconds, just for test purposes.
+    # T(i,j) is simply the duration of a process step. T is not wafer dependent. This constraint is imposed to simplify the model and means that processing in the automation module is not affected by the order in which wafers are loaded and unloaded from different stations.
+    
+    # Randomly generate durations between 10 and 100 seconds depending on the process step i and module j
     T = {(i, j): np.random.randint(10, 100) for i in I for j in J}
     # Überschreibt die Werte in T für alle Paare (1, j) mit neuen zufälligen Werten zwischen 1000 und 2000
     T.update({(1, j): np.random.randint(1000, 2000) for j in J if (1, j) in T})
@@ -26,12 +27,15 @@ if __name__ == '__main__':
         print("\n".join([f"T[{i}][{j}] = {T[i, j]}" for i in I for j in J]))
         [writer.writerow({T[i, j]}) for i in I for j in J]
 
-    # Randomly generate transfert times
-    T_Trans = {(k, l, x, i, j, w): np.random.randint(10, 15) for k in I_automation for l in J for x in W for i in I_automation for j in J for w in W if not (l == j and x == w) and not (k == i and l == j)}
-    with open('T_Trans.csv', 'w', newline='') as file:
+    # Randomly generates transfert times
+    T_Trans = {(k, l, x, i, j, w): np.random.randint(10, 15)
+               for k in I for l in J for x in W
+               for i in I for j in J for w in W
+               }
+    with open('T(k,l,x,i,j,w)_Trans.csv', 'w', newline='') as file:
         writer = csv.writer(file)
-        print("\n".join([f"T_Trans[{k},{l},{x},{i},{j},{w}] = {T_Trans[k, l, x, i, j, w]}" for k in I_automation for l in J for x in W for i in I_automation for j in J for w in W if (k, l, x) < (i, j, w) and not (l == j and x == w) and not (k == i and l == j)]))
-        [writer.writerow({T_Trans[k, l, x, i, j, w]}) for k in I_automation for l in J for x in W for i in I_automation for j in J for w in W if not (l == j and x == w) and not (k == i and l == j)]
+        print("\n".join([f"T_Trans[{k},{l},{x},{i},{j},{w}] = {T_Trans[k, l, x, i, j, w]}" for k in I for l in J for x in W for i in I for j in J for w in W]))
+        [writer.writerow({T_Trans[k, l, x, i, j, w]}) for k in I for l in J for x in W for i in I for j in J for w in W]
 
     # Ramdomly generateted capacipties for all process modules between 5 and 10
     C = {j: np.random.randint(5, 10) for j in J}
@@ -82,15 +86,15 @@ def read_T_Trans_from_csv(filename):
     line = 0
     # Initialize an empty dictionary to store the values
     T_Trans = {}
-    for k in I_automation:
+    for k in I:
         for l in J:
             for x in W:
-                for i in I_automation:
+                for i in I:
                     for j in J:
                         for w in W:
-                            if not (l == j and x == w) and not (k == i and l == j):
-                                T_Trans[(k, l, x, i, j, w)] = T_Trans_list[line]
-                                line += 1 
+                            T_Trans[(k, l, x, i, j, w)] = T_Trans_list[line]
+                            line += 1 
+                            print(line)
     return T_Trans
 
 C = read_C_from_csv('C(j).csv')
