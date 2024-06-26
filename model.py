@@ -1,6 +1,7 @@
 from pyscipopt import Model
 from data import *
 
+
 # Create the model
 model = Model("Scheduling Optimization")
 
@@ -76,8 +77,8 @@ y = {(k, l, x, i, j, w): model.addVar(vtype="B", name=f"y_{k}_{l}_{x}_{i}_{j}_{w
 
 # # Add constraints to ensure the time gap using Big M method
 for k, l, x, i, j, w in y:
-    model.addCons(t[k, l, x] - t[i, j, w] + M * y[k, l, x, i, j, w] >= T[i, j])
-    model.addCons(t[i, j, w] - t[k, l, x] + M * (1 - y[k, l, x, i, j, w]) >= T[k, l])
+    model.addCons(t[k, l, x] - t[i, j, w] + M * y[k, l, x, i, j, w] >= T[i, j] + T_Trans[k,l,x,i,j,w])
+    model.addCons(t[i, j, w] - t[k, l, x] + M * (1 - y[k, l, x, i, j, w]) >= T[k, l] + T_Trans[i,j,w,k,l,x])
 
 #lazy constraints
 # benderts decomposition

@@ -23,11 +23,15 @@ if __name__ == '__main__':
     T.update({(1, j): np.random.randint(1000, 2000) for j in J if (1, j) in T})
     with open('T(i,j).csv', 'w', newline='') as file:
         writer = csv.writer(file)
-        for i in I:
-            for j in J:
-                    print(f"T[{i}][{j}] = {T[i, j]}")
-                    # Write results
-                    writer.writerow({T[i, j]})
+        print("\n".join([f"T[{i}][{j}] = {T[i, j]}" for i in I for j in J]))
+        [writer.writerow({T[i, j]}) for i in I for j in J]
+
+    # Randomly generate transfert times
+    T_Trans = {(k, l, x, i, j, w): np.random.randint(10, 15) for k in I_automation for l in J for x in W for i in I_automation for j in J for w in W if not (l == j and x == w) and not (k == i and l == j)}
+    with open('T_Trans.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        print("\n".join([f"T_Trans[{k},{l},{x},{i},{j},{w}] = {T_Trans[k, l, x, i, j, w]}" for k in I_automation for l in J for x in W for i in I_automation for j in J for w in W if (k, l, x) < (i, j, w) and not (l == j and x == w) and not (k == i and l == j)]))
+        [writer.writerow({T_Trans[k, l, x, i, j, w]}) for k in I_automation for l in J for x in W for i in I_automation for j in J for w in W if not (l == j and x == w) and not (k == i and l == j)]
 
     # Ramdomly generateted capacipties for all process modules between 5 and 10
     C = {j: np.random.randint(5, 10) for j in J}
@@ -35,11 +39,9 @@ if __name__ == '__main__':
     C[0] = 5
     with open('C(j).csv', 'w', newline='') as file:
         writer = csv.writer(file)
-        for i in I:
-            for j in J:
-                    print(f"C[{j}] = {C[j]}")
-                    # Write results
-                    writer.writerow({C[j]})
+        print("\n".join([f"C[{j}] = {C[j]}" for j in J for i in I]))
+        [writer.writerow({C[j]}) for j in J for i in I]
+
 
 def read_T_from_csv(filename, I, J):
     # Initialize an empty dictionary to store the triple indexed values
@@ -68,10 +70,35 @@ def read_C_from_csv(filename):
             txt = line.strip().replace('\n','')
             C.append(float(txt))
     return C
+def read_T_Trans_from_csv(filename):
+    # Initialize an empty list to store the values
+    T_Trans_list = []
+    # Open the file in read mode
+    with open(filename, 'r') as file:
+        # Read each line
+        for line in file:
+            txt = line.strip().replace('\n','')
+            T_Trans_list.append(float(txt))
+    line = 0
+    # Initialize an empty dictionary to store the values
+    T_Trans = {}
+    for k in I_automation:
+        for l in J:
+            for x in W:
+                for i in I_automation:
+                    for j in J:
+                        for w in W:
+                            if not (l == j and x == w) and not (k == i and l == j):
+                                T_Trans[(k, l, x, i, j, w)] = T_Trans_list[line]
+                                line += 1 
+    return T_Trans
+
 C = read_C_from_csv('C(j).csv')
 T = read_T_from_csv('T(i,j).csv', I, J)
+T_Trans = read_T_Trans_from_csv('T(k,l,x,i,j,w)_Trans.csv')
 # Print generated T and C
 
 print("Durations for each step:", T)
 print("Capacities for each module:", C)
+# print(("Transition between two steps:", T_Trans))
 
