@@ -22,7 +22,7 @@ if __name__ == '__main__':
     T = {(i, j): np.random.randint(10, 100) for i in I for j in J}
     # Überschreibt die Werte in T für alle Paare (1, j) mit neuen zufälligen Werten zwischen 1000 und 2000
     T.update({(1, j): np.random.randint(1000, 2000) for j in J if (1, j) in T})
-    with open('T(i,j).csv', 'w', newline='') as file:
+    with open('Data\T(i,j).csv', 'w', newline='') as file:
         writer = csv.writer(file)
         print("\n".join([f"T[{i}][{j}] = {T[i, j]}" for i in I for j in J]))
         [writer.writerow({T[i, j]}) for i in I for j in J]
@@ -32,7 +32,7 @@ if __name__ == '__main__':
                for k in I for l in J for x in W
                for i in I for j in J for w in W
                }
-    with open('T(k,l,x,i,j,w)_Trans.csv', 'w', newline='') as file:
+    with open('Data\T(k,l,x,i,j,w)_Trans.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         print("\n".join([f"T_Trans[{k},{l},{x},{i},{j},{w}] = {T_Trans[k, l, x, i, j, w]}" for k in I for l in J for x in W for i in I for j in J for w in W]))
         [writer.writerow({T_Trans[k, l, x, i, j, w]}) for k in I for l in J for x in W for i in I for j in J for w in W]
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     C = {j: np.random.randint(5, 10) for j in J}
     # set the first capacity to 5, just for test purposes.
     C[0] = 5
-    with open('C(j).csv', 'w', newline='') as file:
+    with open('Data\C(j).csv', 'w', newline='') as file:
         writer = csv.writer(file)
         print("\n".join([f"C[{j}] = {C[j]}" for j in J for i in I]))
         [writer.writerow({C[j]}) for j in J for i in I]
@@ -97,9 +97,9 @@ def read_T_Trans_from_csv(filename):
                             print(line)
     return T_Trans
 
-C = read_C_from_csv('C(j).csv')
-T = read_T_from_csv('T(i,j).csv', I, J)
-T_Trans = read_T_Trans_from_csv('T(k,l,x,i,j,w)_Trans.csv')
+C = read_C_from_csv('Data\C(j).csv')
+T = read_T_from_csv('Data\T(i,j).csv', I, J)
+T_Trans = read_T_Trans_from_csv('Data\T(k,l,x,i,j,w)_Trans.csv')
 # Print generated T and C
 
 print("Durations for each step:", T)
