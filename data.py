@@ -13,7 +13,27 @@ I_load = set(recipe_step -1 for recipe_step in recipe_steps)
 I_unload = set(recipe_step +1 for recipe_step in recipe_steps)
 
 I_automation = {0,2}
+# Module Positions
 
+
+def get_T_Trans(k, l, i, j):
+    dphi = 90
+    I_Casette = {0,2}
+    phi_position = [0, 90, 180, 270]
+    phi_final = 0
+    phi_start = 0
+    if k in I_Casette:
+        phi_final = phi_position[0]
+    elif k in I_recipe:
+        phi_final = phi_position[l]
+
+    if j in I_Casette:
+        phi_start = phi_position[0]
+    elif i in I_recipe:
+        phi_start = phi_position[j]
+
+    T_Trans = (phi_final - phi_start)/dphi
+    return T_Trans
 
 if __name__ == '__main__':
     # T(i,j) is simply the duration of a process step. T is not wafer dependent. This constraint is imposed to simplify the model and means that processing in the automation module is not affected by the order in which wafers are loaded and unloaded from different stations.
@@ -28,14 +48,14 @@ if __name__ == '__main__':
         [writer.writerow({T[i, j]}) for i in I for j in J]
 
     # Randomly generates transfert times
-    T_Trans = {(k, l, x, i, j, w): np.random.randint(10, 15)
-               for k in I for l in J for x in W
-               for i in I for j in J for w in W
+    T_Trans = {(k, l, i, j): get_T_Trans(k, l, i, j)
+               for k in I for l in J
+               for i in I for j in J
                }
-    with open('Data\T(k,l,x,i,j,w)_Trans.csv', 'w', newline='') as file:
+    with open('Data\T(k,l,i,j)_Trans.csv', 'w', newline='') as file:
         writer = csv.writer(file)
-        print("\n".join([f"T_Trans[{k},{l},{x},{i},{j},{w}] = {T_Trans[k, l, x, i, j, w]}" for k in I for l in J for x in W for i in I for j in J for w in W]))
-        [writer.writerow({T_Trans[k, l, x, i, j, w]}) for k in I for l in J for x in W for i in I for j in J for w in W]
+        print("\n".join([f"T_Trans[{k},{l},{i},{j}] = {T_Trans[k, l, i, j]}" for k in I for l in J for i in I for j in J]))
+        [writer.writerow({T_Trans[k, l, i, j]}) for k in I for l in J for i in I for j in J]
 
     # Ramdomly generateted capacipties for all process modules between 5 and 10
     C = {j: np.random.randint(5, 10) for j in J}
@@ -88,18 +108,16 @@ def read_T_Trans_from_csv(filename):
     T_Trans = {}
     for k in I:
         for l in J:
-            for x in W:
-                for i in I:
-                    for j in J:
-                        for w in W:
-                            T_Trans[(k, l, x, i, j, w)] = T_Trans_list[line]
-                            line += 1 
-                            print(line)
+            for i in I:
+                for j in J:
+                        T_Trans[(k, l,i, j)] = T_Trans_list[line]
+                        line += 1 
+                        print(line)
     return T_Trans
 
 C = read_C_from_csv('Data\C(j).csv')
 T = read_T_from_csv('Data\T(i,j).csv', I, J)
-T_Trans = read_T_Trans_from_csv('Data\T(k,l,x,i,j,w)_Trans.csv')
+T_Trans = read_T_Trans_from_csv('Data\T(k,l,i,j)_Trans.csv')
 # Print generated T and C
 
 print("Durations for each step:", T)
