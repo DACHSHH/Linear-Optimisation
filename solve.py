@@ -6,8 +6,8 @@ import csv
 # Objective: minimize t_max
 model.setObjective(t_max, "minimize")
 
-# Set the relative gap tolerance to 10%
-model.setRealParam('limits/gap', 0.2)  # 0.1 corresponds to 10%
+# Set the relative gap tolerance. Means the gap to the optimum
+model.setRealParam('limits/gap', 0.3)  # 0.1 corresponds to 10%
 # Solve the model
 model.optimize()
 

@@ -2,46 +2,47 @@ import numpy as np
 import csv
 
 # Define sets
-I = range(3)  # Set of Process Steps, change this number to change the number of process steps
+I = range(5)  # Set of Process Steps, change this number to change the number of process steps
 J = range(3)   #  Set of Modules, change this number to change the number of modules
 W = range(10)   # Set of Wafers per Module, change this number to change the number of wafers
 
 # Define Sub Sets 
-recipe_steps = {1} # Set of process steps where all wafers belonging to a specific run of a module are processed together during a recipe step.
+recipe_steps = {2} # Set of process steps where all wafers belonging to a specific run of a module are processed together during a recipe step.
 I_recipe = recipe_steps # renamed name for consistency
-I_load = set(recipe_step -1 for recipe_step in recipe_steps)
-I_unload = set(recipe_step +1 for recipe_step in recipe_steps)
+I_load = set(recipe_step - 1 for recipe_step in recipe_steps)
+I_unload = set(recipe_step + 1 for recipe_step in recipe_steps)
 
-I_automation = {0,2}
+I_automation = {1,3}
+I_casette = {0,4}
 # Module Positions
+def get_T_Trans_condition(k,i):
+    return not(i in I_casette or k in I_casette) and k not in I_recipe and i not in I_recipe    # No Transfer Time if i == 0 or k == 0 or to start a recipe
 
 
 def get_T_Trans(k, l, i, j):
+    # 
     dphi = 90
-    I_Casette = {0,2}
-    phi_position = [0, 90, 180, 270]
-    phi_final = 0
+    phi__position = [90, 180, -90] # -180 < phi <= 180
+    phi_last = 0
     phi_start = 0
-    if k in I_Casette:
-        phi_final = phi_position[0]
-    elif k in I_recipe:
-        phi_final = phi_position[l]
-
-    if j in I_Casette:
-        phi_start = phi_position[0]
-    elif i in I_recipe:
-        phi_start = phi_position[j]
-
-    T_Trans = (phi_final - phi_start)/dphi
+    if k in I_unload:
+        phi_start = phi__position[l]
+    if i in I_load:
+        phi_last = phi__position[j]
+    phi_delta =  abs(min(abs(phi_start) - abs(phi_last), abs(phi_last) - abs(phi_start)))
+    if phi_start != phi_last and abs(phi_start) == abs(phi_last):
+        phi_delta = 180
+    T_Trans = phi_delta/dphi # positive and negative rotations are possible
     return T_Trans
 
 if __name__ == '__main__':
     # T(i,j) is simply the duration of a process step. T is not wafer dependent. This constraint is imposed to simplify the model and means that processing in the automation module is not affected by the order in which wafers are loaded and unloaded from different stations.
     
     # Randomly generate durations between 10 and 100 seconds depending on the process step i and module j
-    T = {(i, j): np.random.randint(10, 100) for i in I for j in J}
+    T = {(i, j): np.random.randint(50, 100) for i in I for j in J}
     # Überschreibt die Werte in T für alle Paare (1, j) mit neuen zufälligen Werten zwischen 1000 und 2000
-    T.update({(1, j): np.random.randint(1000, 2000) for j in J if (1, j) in T})
+    T.update({(i, j): np.random.randint(1000, 2000) for i in I_recipe for j in J if (i, j) in T})
+    T.update({(i, j): 100 for i in I_casette for j in J if (i, j) in T})
     with open('Data\T(i,j).csv', 'w', newline='') as file:
         writer = csv.writer(file)
         print("\n".join([f"T[{i}][{j}] = {T[i, j]}" for i in I for j in J]))
@@ -51,11 +52,11 @@ if __name__ == '__main__':
     T_Trans = {(k, l, i, j): get_T_Trans(k, l, i, j)
                for k in I for l in J
                for i in I for j in J
-               }
+               if get_T_Trans_condition(k,i)}
     with open('Data\T(k,l,i,j)_Trans.csv', 'w', newline='') as file:
         writer = csv.writer(file)
-        print("\n".join([f"T_Trans[{k},{l},{i},{j}] = {T_Trans[k, l, i, j]}" for k in I for l in J for i in I for j in J]))
-        [writer.writerow({T_Trans[k, l, i, j]}) for k in I for l in J for i in I for j in J]
+        print("\n".join([f"T_Trans[{k},{l},{i},{j}] = {T_Trans[k, l, i, j]}" for k in I for l in J for i in I for j in J if get_T_Trans_condition(k,i)]))
+        [writer.writerow({T_Trans[k, l, i, j]}) for k in I for l in J for i in I for j in J if get_T_Trans_condition(k,i)]
 
     # Ramdomly generateted capacipties for all process modules between 5 and 10
     C = {j: np.random.randint(5, 10) for j in J}
@@ -110,11 +111,12 @@ def read_T_Trans_from_csv(filename):
         for l in J:
             for i in I:
                 for j in J:
+                    if get_T_Trans_condition(k,i):
                         T_Trans[(k, l,i, j)] = T_Trans_list[line]
                         line += 1 
-                        print(line)
     return T_Trans
 
+C_Casette = len(J) * len(W) 
 C = read_C_from_csv('Data\C(j).csv')
 T = read_T_from_csv('Data\T(i,j).csv', I, J)
 T_Trans = read_T_Trans_from_csv('Data\T(k,l,i,j)_Trans.csv')
