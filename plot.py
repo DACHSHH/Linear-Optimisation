@@ -98,6 +98,6 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
     
 if __name__== "__main__":
     t, t_new_cycle = read_from_csv('t(i,j,w)_results.csv', I, J, W)
-    print((len(J)*len(W))/t_new_cycle)
+    print('The output of the cluster is',round((len(J)*len(W))*3600/t_new_cycle,3), 'Wafer per hour.')
     plot_results(t, I, J, W, T, I_automation, I_recipe)
     
