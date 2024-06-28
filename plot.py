@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import mplcursors
 from matplotlib.ticker import MaxNLocator
 
+
 def read_from_csv(filename, I, J, W):
     # Initialize an empty dictionary to store the triple indexed values
     t_list = []
@@ -20,11 +21,11 @@ def read_from_csv(filename, I, J, W):
             for w in W:
                 t[(i, j, w)] = t_list[line]
                 line += 1 
-    t_max = t_list[line]
-    return t, t_max
+    t_new_cycle = t_list[line]
+    return t, t_new_cycle
     
         
-# # Colors for each wafer
+# 20 Colors, should be at least len(W), for each wafer
 colors = plt.cm.tab20.colors
 def plot_results(t, I, J, W, T, I_automation, I_recipe):
     # Initialize the figure for per-module plots
@@ -33,9 +34,6 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
     # Ensure axs is iterable (important when len(J) == 1)
     if len(J) == 1:
         axs = [axs]
-    
-    
-
     # Plotting for each module
     for j in J:
         # Iterate over each wafer
@@ -56,7 +54,7 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
         axs[j].set_ylabel("Process Step")
         axs[j].set_title(f"Module {j}")
         axs[j].legend(loc='upper left', bbox_to_anchor=(1,1))  # Legend on the right side
-        axs[j].set_xlim(left=0,right=t_max)
+        axs[j].set_xlim(left=0,right=t_new_cycle)
         # Stelle sicher, dass die Y-Achse nur Ganzzahlen zeigt
         axs[j].yaxis.set_major_locator(MaxNLocator(integer=True))
         
@@ -89,8 +87,9 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
         axs2[p].set_xlabel("Time")
         axs2[p].set_ylabel("Module")
         axs2[p].set_title("All Wafers Overview")
+        axs2[p].set_xlim(left=0,right=t_new_cycle)
         axs2[p].set_xlim(left=0)
-      # Cursor hinzufügen
+    # Cursor hinzufügen
     cursor = mplcursors.cursor(hover=True)
     cursor.connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
     plt.tight_layout()  # Adjust layout to prevent overlap
@@ -98,6 +97,7 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
 
     
 if __name__== "__main__":
-    t, t_max = read_from_csv('t(i,j,w)_results.csv', I, J, W)
+    t, t_new_cycle = read_from_csv('t(i,j,w)_results.csv', I, J, W)
+    print((len(J)*len(W))/t_new_cycle)
     plot_results(t, I, J, W, T, I_automation, I_recipe)
     

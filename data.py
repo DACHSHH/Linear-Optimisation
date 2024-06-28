@@ -37,18 +37,17 @@ def get_T_Trans(k, l, i, j):
 
 if __name__ == '__main__':
     # T(i,j) is simply the duration of a process step. T is not wafer dependent. This constraint is imposed to simplify the model and means that processing in the automation module is not affected by the order in which wafers are loaded and unloaded from different stations.
-    
     # Randomly generate durations between 10 and 100 seconds depending on the process step i and module j
     T = {(i, j): np.random.randint(50, 100) for i in I for j in J}
     # Überschreibt die Werte in T für alle Paare (1, j) mit neuen zufälligen Werten zwischen 1000 und 2000
-    T.update({(i, j): np.random.randint(1000, 2000) for i in I_recipe for j in J if (i, j) in T})
+    T.update({(i, j): np.random.randint(60*60, 2*60*60) for i in I_recipe for j in J if (i, j) in T})
     T.update({(i, j): 100 for i in I_casette for j in J if (i, j) in T})
     with open('Data\T(i,j).csv', 'w', newline='') as file:
         writer = csv.writer(file)
         print("\n".join([f"T[{i}][{j}] = {T[i, j]}" for i in I for j in J]))
         [writer.writerow({T[i, j]}) for i in I for j in J]
 
-    # Randomly generates transfert times
+    # Generates transfert times through position
     T_Trans = {(k, l, i, j): get_T_Trans(k, l, i, j)
                for k in I for l in J
                for i in I for j in J
