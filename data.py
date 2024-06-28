@@ -64,8 +64,8 @@ if __name__ == '__main__':
     C[0] = 5
     with open('Data\C(j).csv', 'w', newline='') as file:
         writer = csv.writer(file)
-        print("\n".join([f"C[{j}] = {C[j]}" for j in J for i in I]))
-        [writer.writerow({C[j]}) for j in J for i in I]
+        print("\n".join([f"C[{j}] = {C[j]}" for j in J]))
+        [writer.writerow({C[j]}) for j in J]
 
 
 def read_T_from_csv(filename, I, J):

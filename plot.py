@@ -74,7 +74,7 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
                     t_values = [t[(i, j, w)], t[(i, j, w)] + T[(i, j)]]
                     # Define steps based on i in automation or recipe
                     steps = []
-                    if i in I_automation or i in I_casette:
+                    if i in I_automation:
                         if p == 0:
                             steps = [f'Automation Module {j}', f'Automation Module {j}']
                         else:
@@ -82,6 +82,8 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
                     elif i in I_recipe:
                         # Differentiating process modules based on j
                         steps = [f'Process Module {j+1}', f'Process Module {j+1}']
+                    else:
+                        steps = ['Casette Loading', 'Casette Loading']
                     axs2[p].step(t_values, steps, where='post', color=colors[hash((i, j, w)) % len(colors)], linewidth=2,  label=f"{i} {j} {w}")
         # Customize the all-wafer plot
         axs2[p].set_xlabel("Time")

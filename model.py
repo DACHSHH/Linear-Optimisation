@@ -22,7 +22,7 @@ y = {(k, l, x, i, j, w): model.addVar(vtype="B", name=f"y_{k}_{l}_{x}_{i}_{j}_{w
 for i in I:
     for j in J:
         for w in W:
-            model.addCons(t_max >= t[i, j, w])
+            model.addCons(t_max >= t[i, j, w] + T[i,j])
 
 # (1) Start times should be non-negative
 for i in I:
