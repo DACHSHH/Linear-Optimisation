@@ -14,12 +14,19 @@ else:
     # All Start Times 
     t = {(i, j, w): model.addVar(vtype="C", name=f"t_{i}_{j}_{w}") for i in I for j in J for w in W}
     # Comparing binary variables determines whether t[i, j, w] is greater than or less than t[k, l, x]. Used in constrains (7)
-    y = {(k, l, x, i, j, w): model.addVar(vtype="B", name=f"y_{k}_{l}_{x}_{i}_{j}_{w}")
-        for k in I_automation for l in J for x in W
-        for i in I_automation for j in J for w in W
-        if (k, l, x) < (i, j, w) and not (l == j and x == w) and not (k == i and l == j) # avoids comparing the same process steps twice and avoids comparing two steps of the same wafer (j,w) because (2) already holds and avoids comparing the same process module in its same process step because (3) holds.
-        }
-
+    if not gate_restriction:
+        y = {(k, l, x, i, j, w): model.addVar(vtype="B", name=f"y_{k}_{l}_{x}_{i}_{j}_{w}")
+            for k in I_automation for l in J for x in W
+            for i in I_automation for j in J for w in W
+            if (k, l, x) < (i, j, w) and not (l == j and x == w) and not (k == i and l == j) # avoids comparing the same process steps twice and avoids comparing two steps of the same wafer (j,w) because (2) already holds and avoids comparing the same process module in its same process step because (3) holds.
+            }
+    else:
+        z = {(k, l, x, i, j, w): model.addVar(vtype="B", name=f"y_{k}_{l}_{x}_{i}_{j}_{w}")
+            for k in I_automation for l in J for x in W
+            for i in I_automation for j in J for w in W
+            if (k, l, x) < (i, j, w) and not (l == j and x == w) and not (k == i and l == j) # avoids comparing the same process steps twice and avoids comparing two steps of the same wafer (j,w) because (2) already holds and avoids comparing the same process module in its same process step because (3) holds.
+            if (x % C[j] == 0 and w % C[j] == 0) or j == l
+            }
     # Add constraints
     # (1) t_new_cycle should be greater than or equal to all start times
     for i in I:
@@ -90,10 +97,15 @@ else:
     # (9) Constraints to ensure the time gap between two stepts where the automation module is involved using Big M method
     # Big M definition, this should be larger than any maximum difference expected between start times. Worst case are all process steps are running not in parallel. 
     M = sum(T[i, j]*len(W) for i in set(I)- set(I_recipe) for j in J) + sum(T[i, j] for i in I_recipe for j in J) 
-    for k, l, x, i, j, w in y:
-        model.addCons(t[k, l, x] - t[i, j, w] + M * y[k, l, x, i, j, w] >= T[i, j] + T_Trans[k, l, i, j])
-        model.addCons(t[i, j, w] - t[k, l, x] + M * (1 - y[k, l, x, i, j, w]) >= T[k, l] + T_Trans[i, j, k, l])
-        
+    if not gate_restriction:
+        for k, l, x, i, j, w in y:
+            model.addCons(t[k, l, x] - t[i, j, w] + M * y[k, l, x, i, j, w] >= T[i, j] + T_Trans[k, l, i, j])
+            model.addCons(t[i, j, w] - t[k, l, x] + M * (1 - y[k, l, x, i, j, w]) >= T[k, l] + T_Trans[i, j, k, l])
+    else:
+        for k, l, x, i, j, w in z:
+            model.addCons(t[k, l, x] - t[i, j, w] + M * z[k, l, x, i, j, w] >= T[i, j] * len(W) + T_Trans[k, l, i, j])
+            model.addCons(t[i, j, w] - t[k, l, x] + M * (1 - z[k, l, x, i, j, w]) >= T[k, l] * len(W) + T_Trans[i, j, k, l])
+    
     # (X) if needed, only a full Process Module can run 
     # (XX) if needed, only one Process Module can be loaded or unloaded at the same time
     # (XXX) Working with mulitple Casettes

@@ -11,9 +11,11 @@ recipe_steps = {2} # Set of process steps where all wafers belonging to a specif
 I_recipe = recipe_steps # renamed name for consistency
 I_load = set(recipe_step - 1 for recipe_step in recipe_steps)
 I_unload = set(recipe_step + 1 for recipe_step in recipe_steps)
-
 I_automation = {1,3}
 I_casette = {0,4}
+
+# Gate Restiction
+gate_restriction = True
 # Module Positions
 def get_T_Trans_condition(k,i):
     return not(i in I_casette or k in I_casette) and k not in I_recipe and i not in I_recipe    # No Transfer Time if i == 0 or k == 0 or to start a recipe
@@ -57,10 +59,9 @@ if __name__ == '__main__':
         print("\n".join([f"T_Trans[{k},{l},{i},{j}] = {T_Trans[k, l, i, j]}" for k in I for l in J for i in I for j in J if get_T_Trans_condition(k,i)]))
         [writer.writerow({T_Trans[k, l, i, j]}) for k in I for l in J for i in I for j in J if get_T_Trans_condition(k,i)]
 
-    # Ramdomly generateted capacipties for all process modules between 5 and 10
-    C = {j: np.random.randint(5, 10) for j in J}
-    # set the first capacity to 5, just for test purposes.
-    C[0] = 5
+    # Generateted capacipties for all process modules
+    C = {j: 5 for j in J}
+    
     with open('Data\C(j).csv', 'w', newline='') as file:
         writer = csv.writer(file)
         print("\n".join([f"C[{j}] = {C[j]}" for j in J]))

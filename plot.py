@@ -79,7 +79,7 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
                             steps = ['Automation Module', 'Automation Module']
                     elif i in I_recipe:
                         # Differentiating process modules based on j
-                        steps = [f'Process Module {j+1}', f'Process Module {j+1}']
+                        steps = [f'Process Module {j}', f'Process Module {j}']
                     else:
                         steps = ['Casette Loading', 'Casette Loading']
                     axs2[p].step(t_values, steps, where='post', color=colors[hash((i, j, w)) % len(colors)], linewidth=2,  label=f"{i} {j} {w}")
