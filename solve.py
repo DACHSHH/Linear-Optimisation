@@ -4,7 +4,7 @@ import csv
 
 ############################# solve the model ################################
 # Objective: minimize t_max
-model.setObjective(t_max, "minimize")
+model.setObjective(t_new_cycle, "minimize")
 
 # Set the relative gap tolerance. Means the gap to the optimum
 model.setRealParam('limits/gap', 0.2)  # 0.1 corresponds to 10%
@@ -21,7 +21,7 @@ if model.getStatus() in ["optimal", "gaplimit", "bestsollimit"]:
                     print(f"t[{i}][{j}][{w}] = {model.getVal(t[i, j, w])}")
                     # Write results
                     writer.writerow({model.getVal(t[i, j, w])})
-        writer.writerow({model.getVal(t_max)})
+        writer.writerow({model.getVal(t_new_cycle)})
     test = True
     for i in I_automation:
         for j in J:
@@ -33,7 +33,7 @@ if model.getStatus() in ["optimal", "gaplimit", "bestsollimit"]:
                                 print(f"Overlapping in automation between t{i,j,w} and t{k,l,x}. You might need to increase M")
                                 test = False
     if test:
-        print(f"Optimal t_max: {model.getVal(t_max)}")
+        print(f"Optimal t_max: {model.getVal(t_new_cycle)}")
 else:
     print("No optimal solution found.")
 

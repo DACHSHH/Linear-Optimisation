@@ -7,7 +7,7 @@ model = Model("Scheduling Optimization")
 
 # Define the variables
 # Last start time
-t_max = model.addVar(vtype="C", name="t_max")
+t_new_cycle= model.addVar(vtype="C", name="t_new_cycle")
 # All Start Times 
 t = {(i, j, w): model.addVar(vtype="C", name=f"t_{i}_{j}_{w}") for i in I for j in J for w in W}
 # Comparing binary variables determines whether t[i, j, w] is greater than or less than t[k, l, x]. Used in constrains (7)
@@ -18,19 +18,19 @@ y = {(k, l, x, i, j, w): model.addVar(vtype="B", name=f"y_{k}_{l}_{x}_{i}_{j}_{w
     }
 
 # Add constraints
-# (0) t_max should be greater than or equal to all start times
+# (1) t_new_cycle should be greater than or equal to all start times
 for i in I:
     for j in J:
         for w in W:
-            model.addCons(t_max >= t[i, j, w] + T[i,j])
+            model.addCons(t_new_cycle >= t[i, j, w] + T[i,j])
 
-# (1) Start times should be non-negative
+# (2) Start times should be non-negative
 for i in I:
     for j in J:
         for w in W:
             model.addCons(t[i, j, w] >= 0)
 
-# (2) Sequential order of process steps regarding a unique wafer(j,w)
+# (3) Sequential order of process steps regarding a unique wafer(j,w)
 for i in I:
     for k in I:
         if k > i:
@@ -38,7 +38,7 @@ for i in I:
                 for w in W:
                         model.addCons(t[k, j, w] >= t[i, j, w] + T[i, j])
 
-# (3) Sequential order of wafers going through the same process module. No wafer(j,w) of the same process module can overtake a wafer(j,x) of the same process module with x > w.
+# (34) Sequential order of wafers going through the same process module. No wafer(j,w) of the same process module can overtake a wafer(j,x) of the same process module with x > w.
 for i in set(I) - set(I_recipe) - set(I_casette) : # in in I but not in I_sync_module
     for j in J:
         for w in W:
@@ -46,7 +46,7 @@ for i in set(I) - set(I_recipe) - set(I_casette) : # in in I but not in I_sync_m
                 if x > w:
                     model.addCons(t[i, j, x] >= t[i, j, w] + T[i, j] + T_Trans[i, j, i, j])
                     
-# (4) Available Space in Process Module before reloading
+# (5) Available Space in Process Module before reloading
 # A new wafer can only be loaded if wafer of the run before with the same run id which is set by w mod C[j] has been unloaded.
 for i in I_load:
     for j in J:
@@ -55,7 +55,7 @@ for i in I_load:
                 if w % C[j] == x % C[j] and w > x:
                     model.addCons(t[i, j, w] >= t[i+2, j, x] + T[i+2, j] + T_Trans[i, j, i+2, j])
                     
-# (5) Synchronize the start times for wafers processed in the same module when a process module is running
+# (6) Synchronize the start times for wafers processed in the same module when a process module is running
 for i in I_recipe:
     for j in J:
         for l in J:
@@ -66,7 +66,7 @@ for i in I_recipe:
                         if int(x/C[j]) == int(w/C[j]):
                             model.addCons(t[i, l, x] == t[i, j, w])
 
-# (6) Loading and unloading of the Casette
+# (7) Loading and unloading of the Casette
 for i in I_casette:
     for j in J:
         for l in J:
@@ -76,7 +76,7 @@ for i in I_casette:
                     if int(x/C_Casette) == int(w/C_Casette):
                         model.addCons(t[i, l, x] == t[i, j, w])
                                                    
-# (7) Make sure the process moduel can't start before it has been emptied completely.
+# (8) Make sure the process moduel can't start before it has been emptied completely.
 for i in I_recipe:
     for j in J:
         for w in W:
@@ -89,7 +89,7 @@ for i in I_recipe:
 
 
 
-# (8) Constraints to ensure the time gap between two stepts where the automation module is involved using Big M method
+# (9) Constraints to ensure the time gap between two stepts where the automation module is involved using Big M method
 # Big M definition, this should be larger than any maximum difference expected between start times. Worst case are all process steps are running not in parallel. 
 M = sum(T[i, j]*len(W) for i in set(I)- set(I_recipe) for j in J) + sum(T[i, j] for i in I_recipe for j in J) 
 for k, l, x, i, j, w in y:
