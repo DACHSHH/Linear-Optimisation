@@ -24,7 +24,8 @@ def read_from_csv(filename, I, J, W):
     return t, t_max
     
         
-
+# # Colors for each wafer
+colors = plt.cm.tab20.colors
 def plot_results(t, I, J, W, T, I_automation, I_recipe):
     # Initialize the figure for per-module plots
     fig1, axs = plt.subplots(len(J), 1, figsize=(10, len(J) * 3))  # One subplot per module j
@@ -33,8 +34,7 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
     if len(J) == 1:
         axs = [axs]
     
-    # Colors for each wafer
-    colors = plt.cm.tab20.colors
+    
 
     # Plotting for each module
     for j in J:
@@ -65,30 +65,36 @@ def plot_results(t, I, J, W, T, I_automation, I_recipe):
     plt.show()  # Display the first plot
 
     # Initialize a separate figure for all wafers
-    fig2, ax2 = plt.subplots(1, 1, figsize=(10, 3))
+    fig2, axs2 = plt.subplots(2, 1, figsize=(10, 3))
     # Additional plot for all wafers with different colors, no legend
-    for w in W:
-        for j in J:
-            for i in I:
-                t_values = [t[(i, j, w)], t[(i, j, w)] + T[(i, j)]]
-                # Define steps based on i in automation or recipe
-                if i in I_automation:
-                    steps = [f'Automation Module {j}', f'Automation Module {j}']
-                elif i in I_recipe:
-                    # Differentiating process modules based on j
-                    steps = [f'Process Module {j+1}', f'Process Module {j+1}']
-                ax2.step(t_values, steps, where='post', color=colors[hash((i, j, w)) % len(colors)], linewidth=2,  label=f"{i} {j} {w}")
-    # Customize the all-wafer plot
-    ax2.set_xlabel("Time")
-    ax2.set_ylabel("Module")
-    ax2.set_title("All Wafers Overview")
-    ax2.set_xlim(left=0)
+    for p in range(2):
+        for w in W:
+            for j in J:
+                for i in I:
+                    t_values = [t[(i, j, w)], t[(i, j, w)] + T[(i, j)]]
+                    # Define steps based on i in automation or recipe
+                    steps = []
+                    if i in I_automation or i in I_casette:
+                        if p == 0:
+                            steps = [f'Automation Module {j}', f'Automation Module {j}']
+                        else:
+                            steps = ['Automation Module', 'Automation Module']
+                    elif i in I_recipe:
+                        # Differentiating process modules based on j
+                        steps = [f'Process Module {j+1}', f'Process Module {j+1}']
+                    axs2[p].step(t_values, steps, where='post', color=colors[hash((i, j, w)) % len(colors)], linewidth=2,  label=f"{i} {j} {w}")
+        # Customize the all-wafer plot
+        axs2[p].set_xlabel("Time")
+        axs2[p].set_ylabel("Module")
+        axs2[p].set_title("All Wafers Overview")
+        axs2[p].set_xlim(left=0)
       # Cursor hinzufügen
     cursor = mplcursors.cursor(hover=True)
     cursor.connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
     plt.tight_layout()  # Adjust layout to prevent overlap
     plt.show()  # Display the second plot
 
+    
 if __name__== "__main__":
     t, t_max = read_from_csv('t(i,j,w)_results.csv', I, J, W)
     plot_results(t, I, J, W, T, I_automation, I_recipe)
